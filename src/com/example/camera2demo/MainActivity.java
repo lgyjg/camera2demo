@@ -298,7 +298,7 @@ public class MainActivity extends Activity implements OnClickListener ,SurfaceTe
                 initCamera();// 初始化相机
             }
         });
-        
+        //bug : null point exception
         mTextureSurface = new Surface(mSurfaceTexturer);
     }
 
