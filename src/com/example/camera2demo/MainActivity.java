@@ -28,12 +28,13 @@ import android.os.HandlerThread;
 import android.util.Log;
 import android.view.Surface;
 import android.view.TextureView;
+import android.view.TextureView.SurfaceTextureListener;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.Toast;
 
-public class MainActivity extends Activity implements OnClickListener {
+public class MainActivity extends Activity implements OnClickListener ,SurfaceTextureListener{
     private Button captureButton;// 拍照按钮
     private Button recordButton;// 录像按钮
     private TextureView mTextureView;// 预览界面
@@ -65,23 +66,11 @@ public class MainActivity extends Activity implements OnClickListener {
         captureButton.setOnClickListener(this);
         recordButton.setOnClickListener(this);
         mTextureView = (TextureView) findViewById(R.id.m_textureview);
-      
-        mSurfaceTexturer = mTextureView.getSurfaceTexture();
-        //fixbug : NPE
-        if (mTextureView.getSurfaceTexture() == null) {
-            Log.e(TAG, "mTextureView=null");
-            
-        }
-        mSurfaceTexturer.setDefaultBufferSize(mTextureView.getWidth(), mTextureView.getHeight());
-        mSurfaceTexturer.setOnFrameAvailableListener(new OnFrameAvailableListener() {
-            // 当帧数据读取时操作
-            @Override
-            public void onFrameAvailable(SurfaceTexture surfaceTexture) {
-                // 开始初始化相机并且读取数据
-                initCamera();// 初始化相机
-            }
-        });
-        mTextureSurface = new Surface(mSurfaceTexturer);
+        //设置监听器
+        mTextureView.setSurfaceTextureListener(this);
+        
+        
+        
         
     }
 
@@ -117,7 +106,8 @@ public class MainActivity extends Activity implements OnClickListener {
             mImageReader.setOnImageAvailableListener(new OnImageAvailableListener() {
                 @Override
                 public void onImageAvailable(ImageReader reader) {
-
+                    //当图片变得可用时调用
+                    
                 }
             }, mHandler);
             //打开相机
@@ -273,7 +263,7 @@ public class MainActivity extends Activity implements OnClickListener {
             case R.id.captrue_button:
                 // 照相
                 try {
-                    Log.i("linc", "take picture");
+                    Log.i(TAG, "take picture");
                     mState = STATE_WAITING_CAPTURE;
                     mCameraCaptureSession.setRepeatingRequest(mPreviewBuilder.build(), mSessionCaptureCallback, mHandler);
                 } catch (CameraAccessException e) {
@@ -287,6 +277,47 @@ public class MainActivity extends Activity implements OnClickListener {
             default:
                 break;
         }
+    }
+
+    @Override
+    public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+        // TODO Auto-generated method stub
+        mSurfaceTexturer = surface;
+        //fixbug : NPE
+        if (mTextureView.getSurfaceTexture() == null) {
+            Log.e(TAG, "mTextureView=null");
+            
+        }
+        
+        mSurfaceTexturer.setDefaultBufferSize(width, height);
+        mSurfaceTexturer.setOnFrameAvailableListener(new OnFrameAvailableListener() {
+            // 当帧数据读取时操作
+            @Override
+            public void onFrameAvailable(SurfaceTexture surfaceTexture) {
+                // 开始初始化相机并且读取数据
+                initCamera();// 初始化相机
+            }
+        });
+        
+        mTextureSurface = new Surface(mSurfaceTexturer);
+    }
+
+    @Override
+    public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+        // TODO Auto-generated method stub
+        
     }
 
 }
